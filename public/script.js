@@ -1,4 +1,4 @@
-window.onload = () => {
+window.addEventListener("DOMContentLoaded", () => {
   const converter = new showdown.Converter();
   const pad = document.getElementById("pad");
   const markdownArea = document.getElementById("markdown");
@@ -46,18 +46,31 @@ window.onload = () => {
 
   // Ignore if on the home page
   if (document.location.pathname.length > 1) {
-    // Implement ShareJS
+    // Implement Yjs
     const documentName = document.location.pathname.substring(1);
-    sharejs.open(documentName, "text", (error, doc) => {
-      if (error) {
-        console.error("Error opening document:", error);
-        return;
-      }
-      doc.attach_textarea(pad);
+    const ydoc = new Y.Doc();
+    const provider = new Y.WebsocketProvider(
+      "ws://localhost:8000",
+      documentName,
+      ydoc
+    );
+
+    const ytext = ydoc.getText("pad");
+    ytext.observe((event) => {
+      pad.value = ytext.toString();
       convertTextAreaToMarkdown();
     });
+
+    pad.addEventListener("input", () => {
+      ytext.delete(0, ytext.length);
+      ytext.insert(0, pad.value);
+    });
+
+    // Sync initial content
+    pad.value = ytext.toString();
+    convertTextAreaToMarkdown();
   }
 
   // Convert on page load
   convertTextAreaToMarkdown();
-};
+});

@@ -1,20 +1,42 @@
 const express = require("express");
-const sharejs = require("share");
-const redis = require("redis"); // Assuming Redis is required
-const app = express();
+const http = require("http");
+const { WebSocketServer } = require("ws");
+const { setupWSConnection } = require("y-websocket/bin/utils");
+const Y = require("yjs");
+const RedisPersistence = require("y-redis").default;
+const redis = require("redis");
 
+const app = express();
 const port = process.env.PORT || 8000;
-app.listen(port, () => {
+const server = http.createServer(app);
+
+// Create Redis client
+const redisClient = redis.createClient();
+
+redisClient.on("error", (err) => {
+  console.error("Redis error:", err);
+});
+
+redisClient.on("connect", () => {
+  console.log("Connected to Redis");
+});
+
+server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-// Options for ShareJS
-const options = {
-  db: { type: "redis" },
-};
+// Set up RedisPersistence
+const persistence = new RedisPersistence(redisClient);
 
-// Attach the Express server to ShareJS
-sharejs.server.attach(app, options);
+// Set up WebSocket server
+const wss = new WebSocketServer({ server });
+
+wss.on("connection", (ws, req) => {
+  setupWSConnection(ws, req, {
+    gc: true,
+    persistence, // Using the RedisPersistence instance
+  });
+});
 
 // Set the view engine to EJS
 app.set("view engine", "ejs");
