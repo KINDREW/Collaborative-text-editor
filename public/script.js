@@ -1,7 +1,5 @@
 window.addEventListener("DOMContentLoaded", () => {
-  const converter = new showdown.Converter();
   const pad = document.getElementById("pad");
-  const markdownArea = document.getElementById("markdown");
 
   // Make the tab act like a tab
   pad.addEventListener("keydown", (e) => {
@@ -22,28 +20,6 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  let previousMarkdownValue;
-
-  // Convert textarea to markdown HTML
-  const convertTextAreaToMarkdown = () => {
-    const markdownText = pad.value;
-    previousMarkdownValue = markdownText;
-    const html = converter.makeHtml(markdownText);
-    markdownArea.innerHTML = html;
-  };
-
-  const didChangeOccur = () => previousMarkdownValue !== pad.value;
-
-  // Check every second if the textarea has changed
-  setInterval(() => {
-    if (didChangeOccur()) {
-      convertTextAreaToMarkdown();
-    }
-  }, 1000);
-
-  // Convert textarea on input change
-  pad.addEventListener("input", convertTextAreaToMarkdown);
-
   // Ignore if on the home page
   if (document.location.pathname.length > 1) {
     // Implement Yjs
@@ -58,7 +34,6 @@ window.addEventListener("DOMContentLoaded", () => {
     const ytext = ydoc.getText("pad");
     ytext.observe((event) => {
       pad.value = ytext.toString();
-      convertTextAreaToMarkdown();
     });
 
     pad.addEventListener("input", () => {
@@ -68,9 +43,5 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // Sync initial content
     pad.value = ytext.toString();
-    convertTextAreaToMarkdown();
   }
-
-  // Convert on page load
-  convertTextAreaToMarkdown();
 });
