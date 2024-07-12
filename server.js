@@ -1,30 +1,32 @@
 const express = require("express");
-const app = express();
 const sharejs = require("share");
-require("redis");
+const redis = require("redis"); // Assuming Redis is required
+const app = express();
 
 const port = process.env.PORT || 8000;
-app.listen(port);
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
 
-// options for sharejs
-var options = {
+// Options for ShareJS
+const options = {
   db: { type: "redis" },
 };
 
-// attach the express server to sharejs
+// Attach the Express server to ShareJS
 sharejs.server.attach(app, options);
 
-// set the view engine to ejs
+// Set the view engine to EJS
 app.set("view engine", "ejs");
 
-// public folder to store assets
-app.use(express.static(__dirname + "/public"));
+// Public folder to store assets
+app.use(express.static(`${__dirname}/public`));
 
-// routes for app
-app.get("/", function (req, res) {
+// Routes for the app
+app.get("/", (req, res) => {
   res.render("pad");
 });
 
-app.get("/(:id)", function (req, res) {
+app.get("/:id", (req, res) => {
   res.render("pad");
 });
