@@ -1,17 +1,20 @@
+require("dotenv").config();
+
 const express = require("express");
 const http = require("http");
 const { WebSocketServer } = require("ws");
 const { setupWSConnection } = require("y-websocket/bin/utils");
 const Y = require("yjs");
-const RedisPersistence = require("y-redis").default;
 const redis = require("redis");
 
 const app = express();
 const port = process.env.PORT || 8000;
 const server = http.createServer(app);
 
-// Create Redis client
-const redisClient = redis.createClient();
+// Create Redis client using environment variables
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URL,
+});
 
 redisClient.on("error", (err) => {
   console.error("Redis error:", err);
@@ -25,16 +28,13 @@ server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-// Set up RedisPersistence
-const persistence = new RedisPersistence(redisClient);
-
 // Set up WebSocket server
 const wss = new WebSocketServer({ server });
 
 wss.on("connection", (ws, req) => {
   setupWSConnection(ws, req, {
     gc: true,
-    persistence, // Using the RedisPersistence instance
+    redisClient, // Pass the Redis client to the setupWSConnection function
   });
 });
 
