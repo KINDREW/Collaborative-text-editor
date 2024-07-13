@@ -6,6 +6,6 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - REDIS_URL=redis://your_redis_url
+      - REDIS_URL=${REDIS_URL}
   redis:
     image: redis:alpine
